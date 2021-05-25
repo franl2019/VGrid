@@ -1,0 +1,108 @@
+.GridTable {
+    position: relative;
+    overflow: hidden;
+    
+    box-shadow: 0 1px 3px 0 #c5c5c5, 0 1px 3px 0 #c5c5c565;
+    border-bottom-width: 1px;
+
+    .GridHead {
+        padding: 0.3rem;
+        height: 30px;
+        background-color: #f8f8f8;
+        display: flex;
+        align-items: center;
+        .GridTr {
+            display: flex;
+            align-items: center;
+            position: relative;
+            .GridTh {
+                position: absolute;
+                color: black;
+                font-weight: 700;
+                transition: all 0.4s, height 0.4s, background-color 0.1s, opacity 0.2s, -webkit-transform 0.4s;
+                .ThBox {
+                    display: flex;
+                    align-items: center;
+                    position: relative;
+                    padding: 0 10px;
+                    .text {
+                        overflow: hidden;
+                        white-space: nowrap;
+                        text-overflow: ellipsis;
+                    }
+                    .resize {
+                        z-index: 1;
+                        position: absolute;
+                        display: flex;
+                        align-items: center;
+                        width: 8px;
+                        height: 100%;
+                        right: -4px;
+                    }
+                    .resize::after {
+                        position: absolute;
+                        content: "";
+                        height: 100%;
+                        width: 1px;
+                        background-color: #c3c7ca;
+                    }
+                }
+            }
+        }
+    }
+
+    .GridBody {
+        padding-left: 0.3rem;
+        height: 200px;
+        overflow-y: scroll;
+
+        .GridTr {
+            display: flex;
+            align-items: center;
+            position: relative;
+            width: 100%;
+            border-bottom: 1px solid #dde2eb;
+            .GridTd {
+                position: absolute;
+                transition: all 0.4s, height 0.4s, background-color 0.1s, opacity 0.2s, -webkit-transform 0.4s;
+                .TdBox {
+                    height: 100%;
+                    display: flex;
+                    align-items: center;
+                    position: relative;
+                    padding: 0 10px;
+                    .text {
+                        overflow: hidden;
+                        white-space: nowrap;
+                        text-overflow: ellipsis;
+                    }
+                    .border {
+                        position: absolute;
+                        display: flex;
+                        align-items: center;
+                        width: 8px;
+                        height: 100%;
+                        right: -4px;
+                    }
+                    .border::after {
+                        position: absolute;
+                        content: "";
+                        height: 100%;
+                        width: 1px;
+                        background-color: #d9dce0;
+                    }
+                }
+            }
+        }
+    }
+
+    .GridResizeLine {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 0;
+        left: 0;
+        border-left: 1px solid rgb(218, 218, 218);
+        z-index: 10;
+    }
+}
