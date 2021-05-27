@@ -1,7 +1,7 @@
 <template>
   <div>
-    <div class="GridTable" id="VGrid">
-      <div class="GridHead">
+    <div class="GridTable" ref="VGrid">
+      <div class="GridHead" ref="GridHead" :style="'width:'+ GridHeadWidth +'px'">
         <div class="GridTr">
           <div
             class="GridTh"
@@ -17,12 +17,13 @@
           </div>
         </div>
       </div>
-      <div class="GridBody">
+      <div class="GridBody" ref="GridBody" >
         <div
           class="GridTr"
           v-for="itemRow in RowPositionOpts"
           :key="itemRow.mtrlcode"
-          :style="'height:' + itemRow.height + 'px'"
+          :style="'height:' + itemRow.height + 'px;'+'width:'+ GridHeadWidth +'px'"
+  
         >
           <div
             class="GridTd"
@@ -51,14 +52,14 @@
 </template>
 
 <script>
-import { useGridOption, useGridEvent } from "../hooks/index";
+import { useGridOption, useGridEvent, useGridWidth } from "../hooks/index";
 
 const {
   getColumnPositionOpts,
+  getGridHeadWidth,
   getColumnOptions,
   getRowPositionOpts,
 } = useGridOption();
-
 
 export default {
   name: "VGrid",
@@ -66,6 +67,9 @@ export default {
     return {
       ColumnOptions: [],
       RowPositionOpts: [],
+      gridHeadClientWidth: 0,
+      gridBodyClientWidth: 0,
+      gridGutterWidth: 0,
     };
   },
   props: {
@@ -78,31 +82,46 @@ export default {
     ColumnPositionOpts() {
       return getColumnPositionOpts(this.ColumnOptions);
     },
+    GridHeadWidth(){
+      return getGridHeadWidth(this.ColumnOptions);
+    }
   },
   mounted() {
-    const { onMousedown } = useGridEvent(this);
+    //获取列配置
     this.ColumnOptions = getColumnOptions(this.$slots.default);
+    //获取行配置
     this.RowPositionOpts = getRowPositionOpts(this.data, 30);
+
+    //获取Gutter宽度
+    const { getClientWidth, getGutterWidth } = useGridWidth();
+    this.gridHeadClientWidth = getClientWidth(this.$refs.GridHead);
+    this.gridBodyClientWidth = getClientWidth(this.$refs.GridBody);
+    this.gridGutterWidth = getGutterWidth(
+      this.gridHeadClientWidth,
+      this.gridBodyClientWidth
+    );
+
+    //添加表头事件
+    const { onMousedown, onScrollLeft } = useGridEvent(this);
     let vnodes = document.getElementsByClassName("resize");
     this.$nextTick(function () {
       vnodes.forEach((vnode) => {
-        vnode.style.cursor = "w-resize";
         vnode.addEventListener("mousedown", onMousedown);
       });
     });
-   
+    this.$refs.GridBody.addEventListener("scroll", onScrollLeft);
+
   },
   beforeDestroy() {
-    const { onMousedown } = useGridEvent();
+    const { onMousedown, onScrollLeft } = useGridEvent();
     let vnodes = document.getElementsByClassName("resize");
     vnodes.forEach((vnode) => {
-        vnode.removeEventListener("mousedown", onMousedown);
-      });
+      vnode.removeEventListener("mousedown", onMousedown);
+    });
+    this.$refs.GridBody.removeEventListener("scroll", onScrollLeft);
   },
   methods: {
-    test(event) {
-      console.log(event);
-    },
+
   },
 };
 </script>

@@ -1,5 +1,11 @@
 function useGridOption() {
-
+    function getGridHeadWidth(columnOptions) {
+        let gridHeadWidth = 0
+        for (let index = 0; index < columnOptions.length; index++) {
+            gridHeadWidth = gridHeadWidth + columnOptions[index].width
+        }
+        return gridHeadWidth
+    }
     //获取列配置项
     function getColumnOptions(columnVNodeList) {
         let columnOptions = []
@@ -54,7 +60,9 @@ function useGridOption() {
         });
         return columnOpts
     }
+
     return {
+        getGridHeadWidth,
         getColumnOptions,
         getColumnPositionOpts,
         getRowPositionOpts,
