@@ -1,46 +1,61 @@
 <template>
   <div>
     <div class="GridTable" ref="VGrid">
-      <div class="GridHead" ref="GridHead" :style="'width:'+ GridHeadWidth +'px'">
+      <div
+        class="GridHead"
+        ref="GridHead"
+        :style="'width:' + GridHeadWidth + 'px'"
+      >
         <div class="GridTr">
           <div
             class="GridTh"
-            v-for="item in ColumnPositionOpts"
+            v-for="(item, index) in ColumnPositionOpts"
             :key="item.prop"
             :ref="item.prop"
             :style="'left:' + item.left + 'px;width:' + item.width + 'px'"
           >
             <div class="ThBox">
+              <div v-if="index === 0" class="checkbox">
+                <input type="checkbox" value="false" @click="headMultiSelect" />
+              </div>
               <span class="text"> {{ item.label }}</span>
               <div class="resize" :data-mtrlcode="item.prop"></div>
             </div>
           </div>
         </div>
       </div>
-      <div class="GridBody" ref="GridBody" :style="'height:'+height+'px;'">
+      <div class="GridBody" ref="GridBody" :style="'height:' + height + 'px;'">
         <div
           class="GridTr"
-          v-for="itemRow in RowPositionOpts"
-          :key="itemRow.mtrlcode"
-          :style="'height:' + itemRow.height + 'px;'+'width:'+ GridHeadWidth +'px'"
-  
+          v-for="rowItem in RowPositionOpts"
+          :key="rowItem.mtrlcode"
+          :style="
+            'height:' + rowItem.height + 'px;' + 'width:' + GridHeadWidth + 'px'
+          "
         >
           <div
             class="GridTd"
-            v-for="itemCol in ColumnPositionOpts"
-            :key="itemCol.mtrlcode"
+            v-for="(colItem, index) in ColumnPositionOpts"
+            :key="colItem.mtrlcode"
             :style="
               'left:' +
-              itemCol.left +
+              colItem.left +
               'px;width:' +
-              itemCol.width +
+              colItem.width +
               'px;height:' +
-              itemRow.height +
+              rowItem.height +
               'px'
             "
           >
             <div class="TdBox">
-              <span class="text">{{ itemRow[itemCol.prop] }}</span>
+              <div v-if="index === 0" class="checkbox">
+                <input
+                  type="checkbox"
+                  v-model="rowItem.isClick"
+                  @click="addMultiList(colItem.prop, rowItem)"
+                />
+              </div>
+              <span class="text">{{ rowItem[colItem.prop] }}</span>
               <div class="v_border">
                 <div class="v_borderLine" :style="isShowBorder"></div>
               </div>
@@ -54,7 +69,14 @@
 </template>
 
 <script>
-import { useGridOption, useGridEvent, useGridWidth } from "../hooks/index";
+import { MULTISTATUS } from "../type/index";
+
+import {
+  useGridOption,
+  useGridEvent,
+  useGridWidth,
+  useGridMultiSelect,
+} from "../hooks/index";
 
 const {
   getColumnPositionOpts,
@@ -62,6 +84,15 @@ const {
   getColumnOptions,
   getRowPositionOpts,
 } = useGridOption();
+
+const {
+  addMultiSelectItem,
+  getMultiSelectList,
+  delectMultiItem,
+  getMultiStatus,
+  allSelect,
+  delectAll,
+} = useGridMultiSelect();
 
 export default {
   name: "VGrid",
@@ -72,6 +103,7 @@ export default {
       gridHeadClientWidth: 0,
       gridBodyClientWidth: 0,
       gridGutterWidth: 0,
+      multiStatus: 0,
     };
   },
   props: {
@@ -79,28 +111,28 @@ export default {
       type: Array,
       default: () => [],
     },
-    border:{
-      type:Boolean,
-      default:true,
+    border: {
+      type: Boolean,
+      default: true,
     },
-    rowHeight:{
-      type:Number,
-      default:30,
+    rowHeight: {
+      type: Number,
+      default: 30,
     },
-    height:{
-      type:Number,
-    }
+    height: {
+      type: Number,
+    },
   },
   computed: {
     ColumnPositionOpts() {
       return getColumnPositionOpts(this.ColumnOptions);
     },
-    GridHeadWidth(){
+    GridHeadWidth() {
       return getGridHeadWidth(this.ColumnOptions);
     },
-    isShowBorder(){
-      return this.border===false?'width:0px':'width:1px'
-    }
+    isShowBorder() {
+      return this.border === false ? "width:0px" : "width:1px";
+    },
   },
   mounted() {
     //获取列配置
@@ -126,7 +158,6 @@ export default {
       });
     });
     this.$refs.GridBody.addEventListener("scroll", onScrollLeft);
-
   },
   beforeDestroy() {
     const { onMousedown, onScrollLeft } = useGridEvent();
@@ -138,6 +169,41 @@ export default {
   },
   methods: {
 
+    //列多选按钮
+    addMultiList(colTarget, colItem) {
+      if (colItem.isClick) {
+        delectMultiItem(colTarget, colItem);
+        this.$emit("selectionchange", getMultiSelectList());
+      } else if (!colItem.isClick) {
+        addMultiSelectItem(colItem);
+        this.$emit("selectionchange", getMultiSelectList());
+      }
+    },
+
+    //表头多选按钮
+    headMultiSelect() {
+      this.multiStatus = getMultiStatus(this.RowPositionOpts);
+      switch (this.multiStatus) {
+
+        case MULTISTATUS.UNCHECKED:
+          allSelect(this.RowPositionOpts);
+          this.$emit("selectionchange", getMultiSelectList());
+          break;
+
+        case MULTISTATUS.SELECT_ALL:
+          delectAll(this.RowPositionOpts);
+          this.$emit("selectionchange", getMultiSelectList());
+          break;
+
+        case MULTISTATUS.SELECT:
+          allSelect(this.RowPositionOpts);
+          this.$emit("selectionchange", getMultiSelectList());
+          break;
+
+        default:
+          break;
+      }
+    },
   },
 };
 </script>

@@ -37,7 +37,7 @@ function useGridOption() {
         return columnOptions
     }
 
-    //计算各行的位置
+    //计算各行的配置
     function getRowPositionOpts(data,rowHeight) {
         let rowPositionOpts = JSON.parse(JSON.stringify(data))
         if(!rowHeight){
@@ -47,6 +47,7 @@ function useGridOption() {
         for (let index = 0; index < rowPositionOpts.length; index++) {
             const row = rowPositionOpts[index];
             row.height = rowHeight;
+            row.isClick = false;
         }
 
         return rowPositionOpts
