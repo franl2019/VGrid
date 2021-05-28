@@ -55,7 +55,6 @@
     }
 
     .GridBody {
-        height: 200px;
         overflow-y: scroll;
         background-color: #ffffff;
         .GridTr {
@@ -80,22 +79,23 @@
                         white-space: nowrap;
                         text-overflow: ellipsis;
                     }
-                    .border {
+                    .v_border {
                         position: absolute;
                         display: flex;
                         align-items: center;
                         width: 8px;
                         height: 100%;
                         right: 0px;
+                        .v_borderLine {
+                            position: absolute;
+                            content: "";
+                            height: 100%;
+                            width: 1px;
+                            background-color: #d9dce0;
+                            right: 0px;
+                        }
                     }
-                    .border::after {
-                        position: absolute;
-                        content: "";
-                        height: 100%;
-                        width: 1px;
-                        background-color: #d9dce0;
-                        right: 0px;
-                    }
+                 
                 }
             }
         }

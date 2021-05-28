@@ -52,6 +52,7 @@ function useGridOption() {
         return rowPositionOpts
     }
 
+    //更新列配置
     function updateColumnOpts(columnOpts,columnName,columnWidth) {
         columnOpts.forEach(columnOpt => {
             if(columnOpt.prop === columnName){
@@ -66,7 +67,7 @@ function useGridOption() {
         getColumnOptions,
         getColumnPositionOpts,
         getRowPositionOpts,
-        updateColumnOpts
+        updateColumnOpts,
     }
 }
 

@@ -17,7 +17,7 @@
           </div>
         </div>
       </div>
-      <div class="GridBody" ref="GridBody" >
+      <div class="GridBody" ref="GridBody" :style="'height:'+height+'px;'">
         <div
           class="GridTr"
           v-for="itemRow in RowPositionOpts"
@@ -41,7 +41,9 @@
           >
             <div class="TdBox">
               <span class="text">{{ itemRow[itemCol.prop] }}</span>
-              <div class="border"></div>
+              <div class="v_border">
+                <div class="v_borderLine" :style="isShowBorder"></div>
+              </div>
             </div>
           </div>
         </div>
@@ -77,6 +79,17 @@ export default {
       type: Array,
       default: () => [],
     },
+    border:{
+      type:Boolean,
+      default:true,
+    },
+    rowHeight:{
+      type:Number,
+      default:30,
+    },
+    height:{
+      type:Number,
+    }
   },
   computed: {
     ColumnPositionOpts() {
@@ -84,13 +97,16 @@ export default {
     },
     GridHeadWidth(){
       return getGridHeadWidth(this.ColumnOptions);
+    },
+    isShowBorder(){
+      return this.border===false?'width:0px':'width:1px'
     }
   },
   mounted() {
     //获取列配置
     this.ColumnOptions = getColumnOptions(this.$slots.default);
     //获取行配置
-    this.RowPositionOpts = getRowPositionOpts(this.data, 30);
+    this.RowPositionOpts = getRowPositionOpts(this.data, this.rowHeight);
 
     //获取Gutter宽度
     const { getClientWidth, getGutterWidth } = useGridWidth();
