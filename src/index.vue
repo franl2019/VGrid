@@ -1,11 +1,8 @@
 <template>
   <div>
     <div class="GridTable" ref="VGrid">
-      <div
-        class="GridHead"
-        ref="GridHead"
-        :style="'width:' + GridHeadWidth + 'px'"
-      >
+      <!-- Head -->
+      <div class="GridHead" ref="GridHead" :style="GridHeadWidth">
         <div class="GridTr">
           <div
             class="GridTh"
@@ -15,8 +12,12 @@
             :style="'left:' + item.left + 'px;width:' + item.width + 'px'"
           >
             <div class="ThBox">
-              <div v-if="index === 0" class="checkbox">
-                <input type="checkbox" value="false" @click="headMultiSelect" />
+              <div v-if="index === 0" class="checkbox_container">
+                <input
+                  type="checkbox"
+                  class="checkbox"
+                  @click="onTotalCheckBox"
+                />
               </div>
               <span class="text"> {{ item.label }}</span>
               <div class="resize" :data-mtrlcode="item.prop"></div>
@@ -24,14 +25,13 @@
           </div>
         </div>
       </div>
+      <!-- Body -->
       <div class="GridBody" ref="GridBody" :style="'height:' + height + 'px;'">
         <div
           class="GridTr"
-          v-for="rowItem in RowPositionOpts"
+          v-for="rowItem in data"
           :key="rowItem.mtrlcode"
-          :style="
-            'height:' + rowItem.height + 'px;' + 'width:' + GridHeadWidth + 'px'
-          "
+          :style="'height:' + rowHeight + 'px;' + GridHeadWidth"
         >
           <div
             class="GridTd"
@@ -43,21 +43,21 @@
               'px;width:' +
               colItem.width +
               'px;height:' +
-              rowItem.height +
+              rowHeight +
               'px'
             "
           >
             <div class="TdBox">
-              <div v-if="index === 0" class="checkbox">
+              <div v-if="index === 0" class="checkbox_container">
                 <input
+                  class="checkbox"
                   type="checkbox"
-                  v-model="rowItem.isClick"
-                  @click="addMultiList(colItem.prop, rowItem)"
+                  @click="onCheckBox($event, rowItem)"
                 />
               </div>
               <span class="text">{{ rowItem[colItem.prop] }}</span>
               <div class="v_border">
-                <div class="v_borderLine" :style="isShowBorder"></div>
+                <div class="v_borderLine" :style="borderWidth"></div>
               </div>
             </div>
           </div>
@@ -69,7 +69,7 @@
 </template>
 
 <script>
-import { MULTISTATUS } from "../type/index";
+import { MULTI_STATUS } from "../type/index";
 
 import {
   useGridOption,
@@ -82,30 +82,19 @@ const {
   getColumnPositionOpts,
   getGridHeadWidth,
   getColumnOptions,
-  getRowPositionOpts,
 } = useGridOption();
 
 const {
-  addMultiSelectItem,
-  getMultiSelectList,
-  delectMultiItem,
+  select,
+  selectAll,
+  deselect,
   getMultiStatus,
-  allSelect,
-  delectAll,
+  switchCheckBox,
+  switchAllCheckBox,
 } = useGridMultiSelect();
 
 export default {
   name: "VGrid",
-  data() {
-    return {
-      ColumnOptions: [],
-      RowPositionOpts: [],
-      gridHeadClientWidth: 0,
-      gridBodyClientWidth: 0,
-      gridGutterWidth: 0,
-      multiStatus: 0,
-    };
-  },
   props: {
     data: {
       type: Array,
@@ -123,30 +112,42 @@ export default {
       type: Number,
     },
   },
+  data() {
+    return {
+      columns: [],
+      selectionList: [],
+      gridGutterWidth: 0,
+    };
+  },
+  watch: {
+    multiStatus: function (newValue) {
+      switchAllCheckBox(newValue);
+    },
+  },
   computed: {
+    multiStatus() {
+      return getMultiStatus(this.selectionList, this.data);
+    },
     ColumnPositionOpts() {
-      return getColumnPositionOpts(this.ColumnOptions);
+      return getColumnPositionOpts(this.columns);
     },
     GridHeadWidth() {
-      return getGridHeadWidth(this.ColumnOptions);
+      return `width:${getGridHeadWidth(this.columns)}px`;
     },
-    isShowBorder() {
+    borderWidth() {
       return this.border === false ? "width:0px" : "width:1px";
     },
   },
+  created() {},
   mounted() {
     //获取列配置
-    this.ColumnOptions = getColumnOptions(this.$slots.default);
-    //获取行配置
-    this.RowPositionOpts = getRowPositionOpts(this.data, this.rowHeight);
+    this.columns = getColumnOptions(this.$slots.default);
 
     //获取Gutter宽度
     const { getClientWidth, getGutterWidth } = useGridWidth();
-    this.gridHeadClientWidth = getClientWidth(this.$refs.GridHead);
-    this.gridBodyClientWidth = getClientWidth(this.$refs.GridBody);
     this.gridGutterWidth = getGutterWidth(
-      this.gridHeadClientWidth,
-      this.gridBodyClientWidth
+      getClientWidth(this.$refs.GridHead),
+      getClientWidth(this.$refs.GridBody)
     );
 
     //添加表头事件
@@ -159,6 +160,7 @@ export default {
     });
     this.$refs.GridBody.addEventListener("scroll", onScrollLeft);
   },
+
   beforeDestroy() {
     const { onMousedown, onScrollLeft } = useGridEvent();
     let vnodes = document.getElementsByClassName("resize");
@@ -167,43 +169,51 @@ export default {
     });
     this.$refs.GridBody.removeEventListener("scroll", onScrollLeft);
   },
-  methods: {
 
-    //列多选按钮
-    addMultiList(colTarget, colItem) {
-      if (colItem.isClick) {
-        delectMultiItem(colTarget, colItem);
-        this.$emit("selectionchange", getMultiSelectList());
-      } else if (!colItem.isClick) {
-        addMultiSelectItem(colItem);
-        this.$emit("selectionchange", getMultiSelectList());
+  methods: {
+    //多选按钮点击事件
+    onCheckBox(event, selectionItem) {
+      const checked = event.target.checked;
+      if (checked === false) {
+        deselect(selectionItem, this.selectionList);
+        this.selectionchange();
+      } else if (checked === true) {
+        select(selectionItem, this.selectionList);
+        this.selectionchange();
       }
     },
 
-    //表头多选按钮
-    headMultiSelect() {
-      this.multiStatus = getMultiStatus(this.RowPositionOpts);
+    //全选按钮点击事件
+    onTotalCheckBox() {
       switch (this.multiStatus) {
-
-        case MULTISTATUS.UNCHECKED:
-          allSelect(this.RowPositionOpts);
-          this.$emit("selectionchange", getMultiSelectList());
+        case MULTI_STATUS.UNCHECKED:
+          selectAll(this.selectionList, this.data);
+          this.selectionchange();
+          switchCheckBox(true);
           break;
 
-        case MULTISTATUS.SELECT_ALL:
-          delectAll(this.RowPositionOpts);
-          this.$emit("selectionchange", getMultiSelectList());
+        case MULTI_STATUS.SELECT:
+          selectAll(this.selectionList, this.data);
+          this.selectionchange();
+          switchCheckBox(true);
           break;
 
-        case MULTISTATUS.SELECT:
-          allSelect(this.RowPositionOpts);
-          this.$emit("selectionchange", getMultiSelectList());
+        case MULTI_STATUS.SELECT_ALL:
+          this.selectionList = [];
+          this.selectionchange();
+          switchCheckBox(false);
           break;
 
         default:
           break;
       }
     },
+
+    //多选选项变化事件
+    selectionchange() {
+      this.$emit("selectionchange", this.selectionList);
+    },
+
   },
 };
 </script>

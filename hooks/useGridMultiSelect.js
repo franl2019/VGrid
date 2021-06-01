@@ -1,74 +1,98 @@
-import { MULTISTATUS } from '../type/index'
+import { MULTI_STATUS } from '../type/index'
 function useGridMultiSelect() {
 
-    //多选数组
-    let MultiSelectList = [];
-
     //添加选中到数组
-    function addMultiSelectItem(colItem) {
-        const valueType = Object.prototype.toString.call(colItem)
-        //是否为数组
+    function select(selectionItem, selectionList) {
+        const valueType = Object.prototype.toString.call(selectionItem);
+
         if (valueType !== "[object Object]") {
             return;
         }
-        MultiSelectList.push(colItem);
+
+        for (let index = 0; index < selectionList.length; index++) {
+
+            const rowItem = selectionList[index];
+            if (rowItem === selectionItem) {
+                return;
+            }
+        }
+
+        selectionList.push(selectionItem) //= [...selectionList, selectionItem];
     }
 
     //取消选择
-    function delectMultiItem(colTarget, colItem) {
-        for (let index = 0; index < MultiSelectList.length; index++) {
-            const multi = MultiSelectList[index];
-            if (multi[colTarget] === colItem[colTarget]) {
-                MultiSelectList.splice(index, 1)
-            }
+    function deselect(selectionItem, selectionList) {
 
+        for (let index = 0; index < selectionList.length; index++) {
+
+            const selection = selectionList[index];
+            if (selection === selectionItem) {
+                selectionList.splice(index, 1);
+            }
         }
     }
 
     //全选
-    function allSelect(multiSelectItems) {
-        const valueType = Object.prototype.toString.call(multiSelectItems)
+    function selectAll(selectionList, allList) {
+
+        const valueType = Object.prototype.toString.call(allList);
+
         if (valueType === "[object Array]") {
-            MultiSelectList = JSON.parse(JSON.stringify(multiSelectItems));
-            for (let index = 0; index < multiSelectItems.length; index++) {
-                const multiSelectItem = multiSelectItems[index];
-                multiSelectItem.isClick = true
-            }
+            selectionList.push(...allList);
         }
     }
 
-    //获取多选数组
-    function getMultiSelectList() {
-        return MultiSelectList
-    }
-
-    //取消全选
-    function delectAll(list) {
-        MultiSelectList.length = 0
-        for (let index = 0; index < list.length; index++) {
-            const item = list[index];
-            item.isClick = false
-        }
-    }
 
     //获取选择状态
-    function getMultiStatus(gridArray) {
-        if (MultiSelectList.length === 0) {
-            return MULTISTATUS.UNCHECKED
-        } else if (gridArray.length === MultiSelectList.length) {
-            return MULTISTATUS.SELECT_ALL
-        } else if (MultiSelectList.length > 0) {
-            return MULTISTATUS.SELECT
+    function getMultiStatus(selectionList, gridDataList) {
+
+        if (selectionList.length === 0) {
+            return MULTI_STATUS.UNCHECKED;
+        } else if (gridDataList.length === selectionList.length) {
+            return MULTI_STATUS.SELECT_ALL;
+        } else if (selectionList.length > 0 && gridDataList.length > selectionList.length) {
+            return MULTI_STATUS.SELECT;
         }
+    }
+
+    function switchCheckBox(isChecked) {
+
+        const boxlist = document.getElementsByClassName("checkbox");
+
+        for (let index = 0; index < boxlist.length; index++) {
+            const box = boxlist[index];
+            box.checked = isChecked;
+        }
+
+    }
+
+    function switchAllCheckBox(newValue) {
+
+        const masterSwitch = document.getElementsByClassName("checkbox")[0];
+
+        switch (newValue) {
+            case MULTI_STATUS.UNCHECKED:
+                masterSwitch.checked = false;
+                break;
+            case MULTI_STATUS.SELECT:
+                masterSwitch.checked = false;
+                break;
+            case MULTI_STATUS.SELECT_ALL:
+                masterSwitch.checked = true;
+                break;
+            default:
+                break;
+        }
+
     }
 
     return {
-        addMultiSelectItem,
-        allSelect,
-        delectMultiItem,
-        getMultiSelectList,
-        delectAll,
-        getMultiStatus
+        select,
+        selectAll,
+        deselect,
+        getMultiStatus,
+        switchCheckBox,
+        switchAllCheckBox
     }
 }
 

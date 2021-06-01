@@ -11,9 +11,8 @@ function useGridOption() {
         let columnOptions = []
         for (let index = 0; index < columnVNodeList.length; index++) {
             const columnVNode = columnVNodeList[index];
-            if(!columnVNode.componentOptions)break;
+            if (!columnVNode.componentOptions) break;
             const columnProp = columnVNode.componentOptions.propsData;
-          
             if (columnProp) {
                 if (!columnProp.width) {
                     columnProp.width = 200
@@ -37,26 +36,10 @@ function useGridOption() {
         return columnOptions
     }
 
-    //计算各行的配置
-    function getRowPositionOpts(data,rowHeight) {
-        let rowPositionOpts = JSON.parse(JSON.stringify(data))
-        if(!rowHeight){
-            rowHeight = 25;
-        }
-   
-        for (let index = 0; index < rowPositionOpts.length; index++) {
-            const row = rowPositionOpts[index];
-            row.height = rowHeight;
-            row.isClick = false;
-        }
-
-        return rowPositionOpts
-    }
-
     //更新列配置
-    function updateColumnOpts(columnOpts,columnName,columnWidth) {
+    function updateColumnOpts(columnOpts, columnName, columnWidth) {
         columnOpts.forEach(columnOpt => {
-            if(columnOpt.prop === columnName){
+            if (columnOpt.prop === columnName) {
                 columnOpt.width = columnWidth
             }
         });
@@ -67,7 +50,6 @@ function useGridOption() {
         getGridHeadWidth,
         getColumnOptions,
         getColumnPositionOpts,
-        getRowPositionOpts,
         updateColumnOpts,
     }
 }
